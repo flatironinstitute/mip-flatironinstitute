@@ -45,6 +45,12 @@ jobs:
           repository: mip-org/mip
           path: mip
 
+      - name: Set up MIP_ROOT
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.mip/packages"
+          echo "MIP_ROOT=$HOME/.mip" >> "$GITHUB_ENV"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -199,6 +205,12 @@ jobs:
           repository: mip-org/mip
           path: mip
 
+      - name: Set up MIP_ROOT
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.mip/packages"
+          echo "MIP_ROOT=$HOME/.mip" >> "$GITHUB_ENV"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -283,6 +295,12 @@ jobs:
           repository: mip-org/mip
           path: mip
 
+      - name: Set up MIP_ROOT
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.mip/packages"
+          echo "MIP_ROOT=$HOME/.mip" >> "$GITHUB_ENV"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -359,6 +377,12 @@ jobs:
         with:
           repository: mip-org/mip
           path: mip
+
+      - name: Set up MIP_ROOT
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.mip/packages"
+          echo "MIP_ROOT=$HOME/.mip" >> "$GITHUB_ENV"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -504,6 +528,12 @@ jobs:
           repository: mip-org/mip
           path: mip
 
+      - name: Set up MIP_ROOT
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.mip/packages"
+          echo "MIP_ROOT=$HOME/.mip" >> "$GITHUB_ENV"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -587,6 +617,12 @@ jobs:
         with:
           repository: mip-org/mip
           path: mip
+
+      - name: Set up MIP_ROOT
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.mip/packages"
+          echo "MIP_ROOT=$HOME/.mip" >> "$GITHUB_ENV"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -684,6 +720,12 @@ jobs:
         with:
           repository: mip-org/mip
           path: mip
+
+      - name: Set up MIP_ROOT
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.mip/packages"
+          echo "MIP_ROOT=$HOME/.mip" >> "$GITHUB_ENV"
 
       - name: Set up Python
         uses: actions/setup-python@v5
