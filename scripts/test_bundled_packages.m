@@ -1,5 +1,5 @@
 function test_bundled_packages
-  setenv('MIP_ROOT', fullfile(pwd, 'mip'));
+  setenv('MIP_ROOT', pwd);
   bundled_dir = fullfile('build', 'bundled');
   files = dir(fullfile(bundled_dir, '*.mhl'));
   if isempty(files)
