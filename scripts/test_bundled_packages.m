@@ -1,10 +1,5 @@
 function test_bundled_packages
-  bundled_dir = fullfile(pwd, 'build', 'bundled');
-  mip_root = tempname;
-  mkdir(mip_root);
-  mkdir(fullfile(mip_root, 'packages'));
-  setenv('MIP_ROOT', mip_root);
-  fprintf('MIP_ROOT: %s\n', mip_root);
+  bundled_dir = fullfile('build', 'bundled');
   files = dir(fullfile(bundled_dir, '*.mhl'));
   if isempty(files)
     error('test_bundled_packages: no .mhl files found in %s', bundled_dir);
