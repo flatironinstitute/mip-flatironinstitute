@@ -84,11 +84,35 @@ jobs:
         with:
           command: "addpath('mip'); addpath('scripts'); bundle_packages"
 
-      - name: Upload packages
+      - name: Upload bundled artifacts
         if: steps.check.outputs.has_packages == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python scripts/upload_packages.py
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundled-linux_x86_64
+          path: build/bundled/
+
+      - name: Strip build environment
+        if: steps.check.outputs.has_packages == 'true'
+        shell: bash
+        run: |
+          sudo apt-get purge -y \
+            'gcc-*' 'g++-*' gcc g++ \
+            'clang-*' 'llvm-*' clang lld lldb \
+            'gfortran-*' gfortran \
+            'cmake*' make ninja-build \
+            'libstdc++-*-dev' 'libgcc-*-dev' libc6-dev \
+            patchelf build-essential \
+            'binutils*' \
+            autoconf automake libtool pkg-config \
+            libfftw3-dev libopenblas-dev || true
+          sudo apt-get autoremove -y --purge
+          sudo rm -f /usr/local/bin/gfortran /usr/local/bin/gcc /usr/local/bin/g++
+
+      - name: Test bundled packages
+        if: steps.check.outputs.has_packages == 'true'
+        uses: matlab-actions/run-command@v2
+        with:
+          command: "addpath('mip'); addpath('scripts'); test_bundled_packages"
 
   # build-macos-intel:
   #   runs-on: macos-15-intel
@@ -213,11 +237,38 @@ jobs:
         with:
           command: "addpath('mip'); addpath('scripts'); bundle_packages"
 
-      - name: Upload packages
+      - name: Upload bundled artifacts
         if: steps.check.outputs.has_packages == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python scripts/upload_packages.py
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundled-macos_arm64
+          path: build/bundled/
+
+      - name: Strip build environment
+        if: steps.check.outputs.has_packages == 'true'
+        shell: bash
+        run: |
+          sudo rm -rf /Applications/Xcode*.app
+          sudo rm -rf /Library/Developer
+          sudo pkgutil --forget com.apple.pkg.CLTools_Executables 2>/dev/null || true
+          sudo pkgutil --forget com.apple.pkg.CLTools_SDK_macOS 2>/dev/null || true
+          sudo pkgutil --forget com.apple.pkg.DeveloperToolsCLI 2>/dev/null || true
+          sudo rm -rf ~/Library/Developer
+          sudo xcode-select --reset 2>/dev/null || true
+          sudo rm -rf /opt/homebrew /usr/local/Homebrew /usr/local/Cellar
+          sudo rm -rf /usr/local/var/homebrew /usr/local/etc/bash_completion.d
+          for d in /usr/local/bin /opt/homebrew/bin; do
+            if [ -d "$d" ]; then
+              sudo find "$d" -maxdepth 1 -type l -delete 2>/dev/null || true
+            fi
+          done
+          sudo rm -f /opt/homebrew/bin/gfortran /usr/local/bin/gfortran
+
+      - name: Test bundled packages
+        if: steps.check.outputs.has_packages == 'true'
+        uses: matlab-actions/run-command@v2
+        with:
+          command: "addpath('mip'); addpath('scripts'); test_bundled_packages"
 
   build-numbl-wasm:
     runs-on: ubuntu-latest
@@ -278,11 +329,12 @@ jobs:
         with:
           command: "addpath('mip'); addpath('scripts'); bundle_packages"
 
-      - name: Upload packages
+      - name: Upload bundled artifacts
         if: steps.check.outputs.has_packages == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python scripts/upload_packages.py
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundled-numbl_wasm
+          path: build/bundled/
 
   build-numbl-linux:
     runs-on: ubuntu-latest
@@ -346,11 +398,35 @@ jobs:
         with:
           command: "addpath('mip'); addpath('scripts'); bundle_packages"
 
-      - name: Upload packages
+      - name: Upload bundled artifacts
         if: steps.check.outputs.has_packages == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python scripts/upload_packages.py
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundled-numbl_linux_x86_64
+          path: build/bundled/
+
+      - name: Strip build environment
+        if: steps.check.outputs.has_packages == 'true'
+        shell: bash
+        run: |
+          sudo apt-get purge -y \
+            'gcc-*' 'g++-*' gcc g++ \
+            'clang-*' 'llvm-*' clang lld lldb \
+            'gfortran-*' gfortran \
+            'cmake*' make ninja-build \
+            'libstdc++-*-dev' 'libgcc-*-dev' libc6-dev \
+            patchelf build-essential \
+            'binutils*' \
+            autoconf automake libtool pkg-config \
+            libfftw3-dev libopenblas-dev || true
+          sudo apt-get autoremove -y --purge
+          sudo rm -f /usr/local/bin/gfortran /usr/local/bin/gcc /usr/local/bin/g++
+
+      - name: Test bundled packages
+        if: steps.check.outputs.has_packages == 'true'
+        uses: matlab-actions/run-command@v2
+        with:
+          command: "addpath('mip'); addpath('scripts'); test_bundled_packages"
 
   # build-numbl-macos-intel:
   #   runs-on: macos-15-intel
@@ -466,11 +542,38 @@ jobs:
         with:
           command: "addpath('mip'); addpath('scripts'); bundle_packages"
 
-      - name: Upload packages
+      - name: Upload bundled artifacts
         if: steps.check.outputs.has_packages == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python scripts/upload_packages.py
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundled-numbl_macos_arm64
+          path: build/bundled/
+
+      - name: Strip build environment
+        if: steps.check.outputs.has_packages == 'true'
+        shell: bash
+        run: |
+          sudo rm -rf /Applications/Xcode*.app
+          sudo rm -rf /Library/Developer
+          sudo pkgutil --forget com.apple.pkg.CLTools_Executables 2>/dev/null || true
+          sudo pkgutil --forget com.apple.pkg.CLTools_SDK_macOS 2>/dev/null || true
+          sudo pkgutil --forget com.apple.pkg.DeveloperToolsCLI 2>/dev/null || true
+          sudo rm -rf ~/Library/Developer
+          sudo xcode-select --reset 2>/dev/null || true
+          sudo rm -rf /opt/homebrew /usr/local/Homebrew /usr/local/Cellar
+          sudo rm -rf /usr/local/var/homebrew /usr/local/etc/bash_completion.d
+          for d in /usr/local/bin /opt/homebrew/bin; do
+            if [ -d "$d" ]; then
+              sudo find "$d" -maxdepth 1 -type l -delete 2>/dev/null || true
+            fi
+          done
+          sudo rm -f /opt/homebrew/bin/gfortran /usr/local/bin/gfortran
+
+      - name: Test bundled packages
+        if: steps.check.outputs.has_packages == 'true'
+        uses: matlab-actions/run-command@v2
+        with:
+          command: "addpath('mip'); addpath('scripts'); test_bundled_packages"
 
   build-windows:
     runs-on: windows-latest
@@ -523,11 +626,51 @@ jobs:
         with:
           command: "addpath('mip'); addpath('scripts'); bundle_packages"
 
-      - name: Upload packages
+      - name: Upload bundled artifacts
         if: steps.check.outputs.has_packages == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python scripts/upload_packages.py
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundled-windows_x86_64
+          path: build/bundled/
+
+      - name: Strip build environment
+        if: steps.check.outputs.has_packages == 'true'
+        shell: pwsh
+        run: |
+          $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+          $vsPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+          if ((Test-Path $vsInstaller) -and (Test-Path $vsPath)) {
+            & $vsInstaller uninstall --installPath $vsPath --quiet --norestart --force --wait
+          }
+          if (Get-Command choco -ErrorAction SilentlyContinue) {
+            choco list -r 2>$null | ForEach-Object {
+              $pkg = ($_ -split '\|')[0]
+              if ($pkg -and $pkg -ne 'chocolatey') {
+                choco uninstall $pkg -y --force --skip-autouninstaller
+              }
+            }
+          }
+          $paths = @(
+            "C:\Program Files\Microsoft Visual Studio",
+            "C:\Program Files (x86)\Microsoft Visual Studio",
+            "C:\Program Files (x86)\Windows Kits",
+            "C:\Program Files\LLVM",
+            "C:\Strawberry",
+            "C:\msys64",
+            "C:\mingw64",
+            "C:\ProgramData\chocolatey",
+            "C:\Program Files\CMake",
+            "C:\Program Files\Git\mingw64"
+          )
+          foreach ($p in $paths) {
+            Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $p
+          }
+
+      - name: Test bundled packages
+        if: steps.check.outputs.has_packages == 'true'
+        uses: matlab-actions/run-command@v2
+        with:
+          command: "addpath('mip'); addpath('scripts'); test_bundled_packages"
 
   build-any:
     runs-on: ubuntu-latest
@@ -580,15 +723,37 @@ jobs:
         with:
           command: "addpath('mip'); addpath('scripts'); bundle_packages"
 
-      - name: Upload packages
+      - name: Upload bundled artifacts
         if: steps.check.outputs.has_packages == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python scripts/upload_packages.py
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundled-any
+          path: build/bundled/
 
-  assemble-index:
+      - name: Strip build environment
+        if: steps.check.outputs.has_packages == 'true'
+        shell: bash
+        run: |
+          sudo apt-get purge -y \
+            'gcc-*' 'g++-*' gcc g++ \
+            'clang-*' 'llvm-*' clang lld lldb \
+            'gfortran-*' gfortran \
+            'cmake*' make ninja-build \
+            'libstdc++-*-dev' 'libgcc-*-dev' libc6-dev \
+            patchelf build-essential \
+            'binutils*' \
+            autoconf automake libtool pkg-config || true
+          sudo apt-get autoremove -y --purge
+          sudo rm -f /usr/local/bin/gfortran /usr/local/bin/gcc /usr/local/bin/g++
+
+      - name: Test bundled packages
+        if: steps.check.outputs.has_packages == 'true'
+        uses: matlab-actions/run-command@v2
+        with:
+          command: "addpath('mip'); addpath('scripts'); test_bundled_packages"
+
+  upload-and-assemble:
     runs-on: ubuntu-latest
-    # needs: [build-any, build-linux, build-macos, build-macos-intel, build-windows, build-numbl-wasm, build-numbl-linux, build-numbl-macos-intel, build-numbl-macos]
     needs: [build-any, build-linux, build-macos, build-windows, build-numbl-wasm, build-numbl-linux, build-numbl-macos]
 
     steps:
@@ -599,6 +764,33 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install requests pyyaml
+
+      - name: Download all bundled artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: build/bundled
+          pattern: bundled-*
+          merge-multiple: true
+
+      - name: Check for packages to upload
+        id: check
+        run: |
+          if [ -d build/bundled ] && [ -n "$(ls -A build/bundled 2>/dev/null)" ]; then
+            echo "has_packages=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_packages=false" >> "$GITHUB_OUTPUT"
+            echo "No packages to upload"
+          fi
+        shell: bash
+
+      - name: Upload packages to releases
+        if: steps.check.outputs.has_packages == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/upload_packages.py
 
       - name: Assemble package index
         env:
@@ -615,7 +807,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: assemble-index
+    needs: upload-and-assemble
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
