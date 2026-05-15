@@ -12,7 +12,6 @@ outputDir = fullfile(pwd, 'build', 'bundled');
 
 architecture = getenv('BUILD_ARCHITECTURE');
 if isempty(architecture)
-    % err
     error('mip:missingArchitecture', 'Environment variable BUILD_ARCHITECTURE is not set');
 end
 
@@ -20,6 +19,9 @@ if ~exist(preparedDir, 'dir')
     fprintf('No prepared directory found at %s. Nothing to bundle.\n', preparedDir);
     return;
 end
+
+fprintf('Setting up MEX compilers...\n');
+setup_mex_compilers(architecture);
 
 if ~exist(outputDir, 'dir')
     mkdir(outputDir);
