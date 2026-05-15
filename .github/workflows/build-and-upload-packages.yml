@@ -153,8 +153,12 @@ jobs:
         if: steps.check.outputs.has_packages == 'true'
         shell: bash
         run: |
+          # Explicit gcc list (not 'gcc*'): the wildcard would also match
+          # gcc-N-base, which libgcc-s1/libstdc++6/libgomp1 depend on, so
+          # apt's resolver refuses the whole transaction and the strip
+          # silently no-ops via `|| true`.
           sudo apt-get purge -y \
-            'gcc*' 'g++*' \
+            gcc gcc-12 gcc-13 gcc-14 'g++*' \
             'clang*' 'llvm*' 'libllvm*' 'lld*' \
             'gfortran*' 'libgfortran*' \
             'libgomp*' 'libquadmath*' 'libatomic*' 'libitm*' 'libomp*' \
@@ -166,6 +170,31 @@ jobs:
             autoconf automake libtool pkg-config bison flex m4 || true
           sudo apt-get autoremove -y --purge
           sudo rm -rf /home/linuxbrew
+
+      - name: Verify strip
+        if: steps.check.outputs.has_packages == 'true'
+        shell: bash
+        run: |
+          leaked=0
+          for c in gcc g++ gfortran cc c++ clang ld as cmake patchelf; do
+            if command -v "$c" >/dev/null 2>&1; then
+              echo "::error::Leaked binary: $c at $(command -v "$c")"
+              leaked=1
+            fi
+          done
+          for lib in libgfortran libgomp libquadmath; do
+            if /sbin/ldconfig -p 2>/dev/null | grep -q "$lib"; then
+              hits=$(/sbin/ldconfig -p 2>/dev/null | grep "$lib" | tr -s ' ' || true)
+              echo "::error::Leaked runtime lib $lib:"
+              echo "$hits"
+              leaked=1
+            fi
+          done
+          if [ "$leaked" -ne 0 ]; then
+            echo "Strip did not remove expected toolchain; aborting before test." >&2
+            exit 1
+          fi
+          echo "Strip OK: no compiler binaries or runtime libs on the linker path."
 
       - name: Test bundled packages
         if: steps.check.outputs.has_packages == 'true'
@@ -574,8 +603,12 @@ jobs:
         if: steps.check.outputs.has_packages == 'true'
         shell: bash
         run: |
+          # Explicit gcc list (not 'gcc*'): the wildcard would also match
+          # gcc-N-base, which libgcc-s1/libstdc++6/libgomp1 depend on, so
+          # apt's resolver refuses the whole transaction and the strip
+          # silently no-ops via `|| true`.
           sudo apt-get purge -y \
-            'gcc*' 'g++*' \
+            gcc gcc-12 gcc-13 gcc-14 'g++*' \
             'clang*' 'llvm*' 'libllvm*' 'lld*' \
             'gfortran*' 'libgfortran*' \
             'libgomp*' 'libquadmath*' 'libatomic*' 'libitm*' 'libomp*' \
@@ -587,6 +620,31 @@ jobs:
             autoconf automake libtool pkg-config bison flex m4 || true
           sudo apt-get autoremove -y --purge
           sudo rm -rf /home/linuxbrew
+
+      - name: Verify strip
+        if: steps.check.outputs.has_packages == 'true'
+        shell: bash
+        run: |
+          leaked=0
+          for c in gcc g++ gfortran cc c++ clang ld as cmake patchelf; do
+            if command -v "$c" >/dev/null 2>&1; then
+              echo "::error::Leaked binary: $c at $(command -v "$c")"
+              leaked=1
+            fi
+          done
+          for lib in libgfortran libgomp libquadmath; do
+            if /sbin/ldconfig -p 2>/dev/null | grep -q "$lib"; then
+              hits=$(/sbin/ldconfig -p 2>/dev/null | grep "$lib" | tr -s ' ' || true)
+              echo "::error::Leaked runtime lib $lib:"
+              echo "$hits"
+              leaked=1
+            fi
+          done
+          if [ "$leaked" -ne 0 ]; then
+            echo "Strip did not remove expected toolchain; aborting before test." >&2
+            exit 1
+          fi
+          echo "Strip OK: no compiler binaries or runtime libs on the linker path."
 
       - name: Test bundled packages
         if: steps.check.outputs.has_packages == 'true'
@@ -999,8 +1057,12 @@ jobs:
         if: steps.check.outputs.has_packages == 'true'
         shell: bash
         run: |
+          # Explicit gcc list (not 'gcc*'): the wildcard would also match
+          # gcc-N-base, which libgcc-s1/libstdc++6/libgomp1 depend on, so
+          # apt's resolver refuses the whole transaction and the strip
+          # silently no-ops via `|| true`.
           sudo apt-get purge -y \
-            'gcc*' 'g++*' \
+            gcc gcc-12 gcc-13 gcc-14 'g++*' \
             'clang*' 'llvm*' 'libllvm*' 'lld*' \
             'gfortran*' 'libgfortran*' \
             'libgomp*' 'libquadmath*' 'libatomic*' 'libitm*' 'libomp*' \
@@ -1012,6 +1074,31 @@ jobs:
             autoconf automake libtool pkg-config bison flex m4 || true
           sudo apt-get autoremove -y --purge
           sudo rm -rf /home/linuxbrew
+
+      - name: Verify strip
+        if: steps.check.outputs.has_packages == 'true'
+        shell: bash
+        run: |
+          leaked=0
+          for c in gcc g++ gfortran cc c++ clang ld as cmake patchelf; do
+            if command -v "$c" >/dev/null 2>&1; then
+              echo "::error::Leaked binary: $c at $(command -v "$c")"
+              leaked=1
+            fi
+          done
+          for lib in libgfortran libgomp libquadmath; do
+            if /sbin/ldconfig -p 2>/dev/null | grep -q "$lib"; then
+              hits=$(/sbin/ldconfig -p 2>/dev/null | grep "$lib" | tr -s ' ' || true)
+              echo "::error::Leaked runtime lib $lib:"
+              echo "$hits"
+              leaked=1
+            fi
+          done
+          if [ "$leaked" -ne 0 ]; then
+            echo "Strip did not remove expected toolchain; aborting before test." >&2
+            exit 1
+          fi
+          echo "Strip OK: no compiler binaries or runtime libs on the linker path."
 
       - name: Test bundled packages
         if: steps.check.outputs.has_packages == 'true'
