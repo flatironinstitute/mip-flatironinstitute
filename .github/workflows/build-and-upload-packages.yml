@@ -144,30 +144,10 @@ jobs:
 
       - name: Set up MATLAB
         if: steps.check.outputs.has_packages == 'true'
-        id: matlab
         uses: matlab-actions/setup-matlab@v2
         with:
           cache: true
           release: R2022a
-
-      - name: Probe MATLAB bundled libs and MEX deps (debug)
-        if: steps.check.outputs.has_packages == 'true'
-        shell: bash
-        run: |
-          MR="${{ steps.matlab.outputs.matlabroot }}"
-          echo "matlabroot = $MR"
-          echo
-          echo "=== contents of \$MATLAB/sys/os/glnxa64/ (compiler runtimes) ==="
-          ls -la "$MR/sys/os/glnxa64/" 2>/dev/null | grep -E 'lib(gfortran|gomp|quadmath|gcc|stdc\+\+|atomic|itm|asan|ubsan|tsan|lsan|cc1|ssp|omp|c\.|m\.|pthread)' || echo "  (no matches)"
-          echo
-          echo "=== ldd on a MEX file from the artifact ==="
-          MEX=$(find build/bundled -name '*.mexa64' | head -1)
-          if [ -n "$MEX" ]; then
-            echo "MEX: $MEX"
-            LD_LIBRARY_PATH="$MR/sys/os/glnxa64:$MR/bin/glnxa64" ldd "$MEX" || true
-          else
-            echo "  no .mexa64 inside the artifact"
-          fi
 
       - name: Strip build environment
         if: steps.check.outputs.has_packages == 'true'
