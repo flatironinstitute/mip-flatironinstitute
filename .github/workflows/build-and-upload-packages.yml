@@ -164,7 +164,7 @@ jobs:
           # Patterns are anchored with ^...$ so partial matches don't slip
           # in. They intentionally exclude libstdc++6, libgcc-s1, libc6
           # (essential runtimes that MATLAB and the runner itself need).
-          PURGE_RE='^(gcc|g\+\+|gfortran|clang|clangd|libclang.*|llvm.*|libllvm.*|lld.*|libomp.*|libgfortran[0-9]+|libgomp[0-9]+|libquadmath[0-9]+|libatomic[0-9]+|libitm[0-9]+|libasan[0-9]+|libubsan[0-9]+|liblsan[0-9]+|libtsan[0-9]+|libcc1-[0-9]+|libssp[0-9]+|libstdc\+\+-.*-dev|libgcc-.*-dev|libgfortran-.*-dev|make|ninja-build|patchelf|build-essential|binutils.*|libbinutils.*|libctf.*|libgprofng.*|autoconf|automake|libtool|pkg-config|pkgconf.*|bison|flex|m4|cmake.*)$'
+          PURGE_RE='^(gcc.*|g\+\+.*|gfortran.*|clang.*|libclang.*|llvm.*|libllvm.*|lld.*|libomp.*|libgfortran.*|libgomp.*|libquadmath.*|libatomic.*|libitm.*|libasan.*|libubsan.*|liblsan.*|libtsan.*|libcc1.*|libssp.*|libstdc\+\+-.*-dev|libgcc-.*-dev|make|ninja-build|patchelf|build-essential|binutils.*|libbinutils.*|libctf.*|libgprofng.*|autoconf|automake|libtool|pkg-config|pkgconf.*|bison|flex|m4|cmake.*)$'
 
           PKGS=$(dpkg-query -W --showformat='${Package}\n' 2>/dev/null | grep -E "$PURGE_RE" || true)
 
@@ -931,7 +931,7 @@ jobs:
           # Patterns are anchored with ^...$ so partial matches don't slip
           # in. They intentionally exclude libstdc++6, libgcc-s1, libc6
           # (essential runtimes that MATLAB and the runner itself need).
-          PURGE_RE='^(gcc|g\+\+|gfortran|clang|clangd|libclang.*|llvm.*|libllvm.*|lld.*|libomp.*|libgfortran[0-9]+|libgomp[0-9]+|libquadmath[0-9]+|libatomic[0-9]+|libitm[0-9]+|libasan[0-9]+|libubsan[0-9]+|liblsan[0-9]+|libtsan[0-9]+|libcc1-[0-9]+|libssp[0-9]+|libstdc\+\+-.*-dev|libgcc-.*-dev|libgfortran-.*-dev|make|ninja-build|patchelf|build-essential|binutils.*|libbinutils.*|libctf.*|libgprofng.*|autoconf|automake|libtool|pkg-config|pkgconf.*|bison|flex|m4|cmake.*)$'
+          PURGE_RE='^(gcc.*|g\+\+.*|gfortran.*|clang.*|libclang.*|llvm.*|libllvm.*|lld.*|libomp.*|libgfortran.*|libgomp.*|libquadmath.*|libatomic.*|libitm.*|libasan.*|libubsan.*|liblsan.*|libtsan.*|libcc1.*|libssp.*|libstdc\+\+-.*-dev|libgcc-.*-dev|make|ninja-build|patchelf|build-essential|binutils.*|libbinutils.*|libctf.*|libgprofng.*|autoconf|automake|libtool|pkg-config|pkgconf.*|bison|flex|m4|cmake.*)$'
 
           PKGS=$(dpkg-query -W --showformat='${Package}\n' 2>/dev/null | grep -E "$PURGE_RE" || true)
 
