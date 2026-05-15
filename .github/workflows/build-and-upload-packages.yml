@@ -104,22 +104,68 @@ jobs:
           name: bundled-linux_x86_64
           path: build/bundled/
 
+  test-linux:
+    runs-on: ubuntu-latest
+    needs: build-linux
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Checkout mip
+        uses: actions/checkout@v4
+        with:
+          repository: mip-org/mip
+          path: mip
+
+      - name: Set up MIP_ROOT
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.mip/packages"
+          echo "MIP_ROOT=$HOME/.mip" >> "$GITHUB_ENV"
+
+      - name: Download bundled artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: bundled-linux_x86_64
+          path: build/bundled
+          merge-multiple: true
+
+      - name: Check for bundled packages
+        id: check
+        shell: bash
+        run: |
+          if ls build/bundled/*.mhl >/dev/null 2>&1; then
+            echo "has_packages=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_packages=false" >> "$GITHUB_OUTPUT"
+            echo "No bundled packages to test, skipping remaining steps"
+          fi
+
+      - name: Set up MATLAB
+        if: steps.check.outputs.has_packages == 'true'
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          cache: true
+          release: R2022a
+
       - name: Strip build environment
         if: steps.check.outputs.has_packages == 'true'
         shell: bash
         run: |
           sudo apt-get purge -y \
-            'gcc-*' 'g++-*' gcc g++ \
-            'clang-*' 'llvm-*' clang lld lldb \
-            'gfortran-*' gfortran \
+            'gcc*' 'g++*' \
+            'clang*' 'llvm*' 'libllvm*' 'lld*' \
+            'gfortran*' 'libgfortran*' \
+            'libgomp*' 'libquadmath*' 'libatomic*' 'libitm*' 'libomp*' \
+            'libasan*' 'libubsan*' 'libtsan*' 'liblsan*' 'libcc1*' 'libssp*' \
             'cmake*' make ninja-build \
             'libstdc++-*-dev' 'libgcc-*-dev' libc6-dev \
             patchelf build-essential \
             'binutils*' \
-            autoconf automake libtool pkg-config \
-            libfftw3-dev libopenblas-dev || true
+            autoconf automake libtool pkg-config bison flex m4 || true
           sudo apt-get autoremove -y --purge
-          sudo rm -f /usr/local/bin/gfortran /usr/local/bin/gcc /usr/local/bin/g++
+          sudo rm -rf /home/linuxbrew
 
       - name: Test bundled packages
         if: steps.check.outputs.has_packages == 'true'
@@ -263,25 +309,62 @@ jobs:
           name: bundled-macos_arm64
           path: build/bundled/
 
+  test-macos:
+    runs-on: macos-latest
+    needs: build-macos
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Checkout mip
+        uses: actions/checkout@v4
+        with:
+          repository: mip-org/mip
+          path: mip
+
+      - name: Set up MIP_ROOT
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.mip/packages"
+          echo "MIP_ROOT=$HOME/.mip" >> "$GITHUB_ENV"
+
+      - name: Download bundled artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: bundled-macos_arm64
+          path: build/bundled
+          merge-multiple: true
+
+      - name: Check for bundled packages
+        id: check
+        shell: bash
+        run: |
+          if ls build/bundled/*.mhl >/dev/null 2>&1; then
+            echo "has_packages=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_packages=false" >> "$GITHUB_OUTPUT"
+            echo "No bundled packages to test, skipping remaining steps"
+          fi
+
+      - name: Set up MATLAB
+        if: steps.check.outputs.has_packages == 'true'
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          cache: true
+
       - name: Strip build environment
         if: steps.check.outputs.has_packages == 'true'
         shell: bash
         run: |
           sudo rm -rf /Applications/Xcode*.app
           sudo rm -rf /Library/Developer
+          sudo rm -rf ~/Library/Developer
           sudo pkgutil --forget com.apple.pkg.CLTools_Executables 2>/dev/null || true
           sudo pkgutil --forget com.apple.pkg.CLTools_SDK_macOS 2>/dev/null || true
           sudo pkgutil --forget com.apple.pkg.DeveloperToolsCLI 2>/dev/null || true
-          sudo rm -rf ~/Library/Developer
           sudo xcode-select --reset 2>/dev/null || true
-          sudo rm -rf /opt/homebrew /usr/local/Homebrew /usr/local/Cellar
-          sudo rm -rf /usr/local/var/homebrew /usr/local/etc/bash_completion.d
-          for d in /usr/local/bin /opt/homebrew/bin; do
-            if [ -d "$d" ]; then
-              sudo find "$d" -maxdepth 1 -type l -delete 2>/dev/null || true
-            fi
-          done
-          sudo rm -f /opt/homebrew/bin/gfortran /usr/local/bin/gfortran
+          sudo rm -rf /opt/homebrew
 
       - name: Test bundled packages
         if: steps.check.outputs.has_packages == 'true'
@@ -443,22 +526,67 @@ jobs:
           name: bundled-numbl_linux_x86_64
           path: build/bundled/
 
+  test-numbl-linux:
+    runs-on: ubuntu-latest
+    needs: build-numbl-linux
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Checkout mip
+        uses: actions/checkout@v4
+        with:
+          repository: mip-org/mip
+          path: mip
+
+      - name: Set up MIP_ROOT
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.mip/packages"
+          echo "MIP_ROOT=$HOME/.mip" >> "$GITHUB_ENV"
+
+      - name: Download bundled artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: bundled-numbl_linux_x86_64
+          path: build/bundled
+          merge-multiple: true
+
+      - name: Check for bundled packages
+        id: check
+        shell: bash
+        run: |
+          if ls build/bundled/*.mhl >/dev/null 2>&1; then
+            echo "has_packages=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_packages=false" >> "$GITHUB_OUTPUT"
+            echo "No bundled packages to test, skipping remaining steps"
+          fi
+
+      - name: Set up MATLAB
+        if: steps.check.outputs.has_packages == 'true'
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          cache: true
+
       - name: Strip build environment
         if: steps.check.outputs.has_packages == 'true'
         shell: bash
         run: |
           sudo apt-get purge -y \
-            'gcc-*' 'g++-*' gcc g++ \
-            'clang-*' 'llvm-*' clang lld lldb \
-            'gfortran-*' gfortran \
+            'gcc*' 'g++*' \
+            'clang*' 'llvm*' 'libllvm*' 'lld*' \
+            'gfortran*' 'libgfortran*' \
+            'libgomp*' 'libquadmath*' 'libatomic*' 'libitm*' 'libomp*' \
+            'libasan*' 'libubsan*' 'libtsan*' 'liblsan*' 'libcc1*' 'libssp*' \
             'cmake*' make ninja-build \
             'libstdc++-*-dev' 'libgcc-*-dev' libc6-dev \
             patchelf build-essential \
             'binutils*' \
-            autoconf automake libtool pkg-config \
-            libfftw3-dev libopenblas-dev || true
+            autoconf automake libtool pkg-config bison flex m4 || true
           sudo apt-get autoremove -y --purge
-          sudo rm -f /usr/local/bin/gfortran /usr/local/bin/gcc /usr/local/bin/g++
+          sudo rm -rf /home/linuxbrew
 
       - name: Test bundled packages
         if: steps.check.outputs.has_packages == 'true'
@@ -593,25 +721,62 @@ jobs:
           name: bundled-numbl_macos_arm64
           path: build/bundled/
 
+  test-numbl-macos:
+    runs-on: macos-latest
+    needs: build-numbl-macos
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Checkout mip
+        uses: actions/checkout@v4
+        with:
+          repository: mip-org/mip
+          path: mip
+
+      - name: Set up MIP_ROOT
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.mip/packages"
+          echo "MIP_ROOT=$HOME/.mip" >> "$GITHUB_ENV"
+
+      - name: Download bundled artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: bundled-numbl_macos_arm64
+          path: build/bundled
+          merge-multiple: true
+
+      - name: Check for bundled packages
+        id: check
+        shell: bash
+        run: |
+          if ls build/bundled/*.mhl >/dev/null 2>&1; then
+            echo "has_packages=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_packages=false" >> "$GITHUB_OUTPUT"
+            echo "No bundled packages to test, skipping remaining steps"
+          fi
+
+      - name: Set up MATLAB
+        if: steps.check.outputs.has_packages == 'true'
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          cache: true
+
       - name: Strip build environment
         if: steps.check.outputs.has_packages == 'true'
         shell: bash
         run: |
           sudo rm -rf /Applications/Xcode*.app
           sudo rm -rf /Library/Developer
+          sudo rm -rf ~/Library/Developer
           sudo pkgutil --forget com.apple.pkg.CLTools_Executables 2>/dev/null || true
           sudo pkgutil --forget com.apple.pkg.CLTools_SDK_macOS 2>/dev/null || true
           sudo pkgutil --forget com.apple.pkg.DeveloperToolsCLI 2>/dev/null || true
-          sudo rm -rf ~/Library/Developer
           sudo xcode-select --reset 2>/dev/null || true
-          sudo rm -rf /opt/homebrew /usr/local/Homebrew /usr/local/Cellar
-          sudo rm -rf /usr/local/var/homebrew /usr/local/etc/bash_completion.d
-          for d in /usr/local/bin /opt/homebrew/bin; do
-            if [ -d "$d" ]; then
-              sudo find "$d" -maxdepth 1 -type l -delete 2>/dev/null || true
-            fi
-          done
-          sudo rm -f /opt/homebrew/bin/gfortran /usr/local/bin/gfortran
+          sudo rm -rf /opt/homebrew
 
       - name: Test bundled packages
         if: steps.check.outputs.has_packages == 'true'
@@ -786,21 +951,67 @@ jobs:
           name: bundled-any
           path: build/bundled/
 
+  test-any:
+    runs-on: ubuntu-latest
+    needs: build-any
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Checkout mip
+        uses: actions/checkout@v4
+        with:
+          repository: mip-org/mip
+          path: mip
+
+      - name: Set up MIP_ROOT
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.mip/packages"
+          echo "MIP_ROOT=$HOME/.mip" >> "$GITHUB_ENV"
+
+      - name: Download bundled artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: bundled-any
+          path: build/bundled
+          merge-multiple: true
+
+      - name: Check for bundled packages
+        id: check
+        shell: bash
+        run: |
+          if ls build/bundled/*.mhl >/dev/null 2>&1; then
+            echo "has_packages=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_packages=false" >> "$GITHUB_OUTPUT"
+            echo "No bundled packages to test, skipping remaining steps"
+          fi
+
+      - name: Set up MATLAB
+        if: steps.check.outputs.has_packages == 'true'
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          cache: true
+
       - name: Strip build environment
         if: steps.check.outputs.has_packages == 'true'
         shell: bash
         run: |
           sudo apt-get purge -y \
-            'gcc-*' 'g++-*' gcc g++ \
-            'clang-*' 'llvm-*' clang lld lldb \
-            'gfortran-*' gfortran \
+            'gcc*' 'g++*' \
+            'clang*' 'llvm*' 'libllvm*' 'lld*' \
+            'gfortran*' 'libgfortran*' \
+            'libgomp*' 'libquadmath*' 'libatomic*' 'libitm*' 'libomp*' \
+            'libasan*' 'libubsan*' 'libtsan*' 'liblsan*' 'libcc1*' 'libssp*' \
             'cmake*' make ninja-build \
             'libstdc++-*-dev' 'libgcc-*-dev' libc6-dev \
             patchelf build-essential \
             'binutils*' \
-            autoconf automake libtool pkg-config || true
+            autoconf automake libtool pkg-config bison flex m4 || true
           sudo apt-get autoremove -y --purge
-          sudo rm -f /usr/local/bin/gfortran /usr/local/bin/gcc /usr/local/bin/g++
+          sudo rm -rf /home/linuxbrew
 
       - name: Test bundled packages
         if: steps.check.outputs.has_packages == 'true'
@@ -810,7 +1021,7 @@ jobs:
 
   upload-and-assemble:
     runs-on: ubuntu-latest
-    needs: [build-any, build-linux, build-macos, build-windows, build-numbl-wasm, build-numbl-linux, build-numbl-macos]
+    needs: [test-any, test-linux, test-macos, build-windows, build-numbl-wasm, test-numbl-linux, test-numbl-macos]
 
     steps:
       - name: Checkout repository
