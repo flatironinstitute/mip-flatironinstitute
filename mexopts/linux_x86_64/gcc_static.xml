@@ -26,7 +26,7 @@
     <vars
         CC="$GCC"
         CMDLINE100="$CC -c $DEFINES $INCLUDE $CFLAGS $OPTIM $SRC -o $OBJ"
-        CMDLINE200="$LD $LDFLAGS $LINKOPTIM $LINKEXPORT $LINKEXPORTVER $OBJS $CLIBS $LINKLIBS -o $EXE"
+        CMDLINE200="$LD $LDFLAGS $LINKOPTIM $LINKEXPORTVER $OBJS $CLIBS $LINKLIBS -o $EXE"
         DEFINES="-D_GNU_SOURCE -DMATLAB_MEX_FILE"
         CFLAGS="-fPIC -fexceptions -fwrapv -ffp-contract=off -fno-omit-frame-pointer -pthread"
         INCLUDE="-I&quot;$MATLABROOT/extern/include&quot; -I&quot;$MATLABROOT/simulink/include&quot;"
