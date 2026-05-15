@@ -153,23 +153,40 @@ jobs:
         if: steps.check.outputs.has_packages == 'true'
         shell: bash
         run: |
-          # Explicit gcc list (not 'gcc*'): the wildcard would also match
-          # gcc-N-base, which libgcc-s1/libstdc++6/libgomp1 depend on, so
-          # apt's resolver refuses the whole transaction and the strip
-          # silently no-ops via `|| true`.
-          sudo apt-get purge -y \
-            gcc gcc-12 gcc-13 gcc-14 'g++*' \
-            'clang*' 'llvm*' 'libllvm*' 'lld*' \
-            'gfortran*' 'libgfortran*' \
-            'libgomp*' 'libquadmath*' 'libatomic*' 'libitm*' 'libomp*' \
-            'libasan*' 'libubsan*' 'libtsan*' 'liblsan*' 'libcc1*' 'libssp*' \
-            'cmake*' make ninja-build \
-            'libstdc++-*-dev' 'libgcc-*-dev' libc6-dev \
-            patchelf build-essential \
-            'binutils*' \
-            autoconf automake libtool pkg-config bison flex m4 || true
-          sudo apt-get autoremove -y --purge
+          # Bypass apt's resolver: enumerate installed toolchain packages
+          # and let dpkg purge them with --force-depends. The resolver
+          # kept rejecting our purge sets because some toolchain packages
+          # have reverse-dep chains into essentials (libgcc-s1, libssl3t64,
+          # etc.). --force-depends ignores those checks and removes the
+          # named packages anyway; the resulting dpkg state is inconsistent
+          # but the runner is thrown away after this job.
+          #
+          # Patterns are anchored with ^...$ so partial matches don't slip
+          # in. They intentionally exclude libstdc++6, libgcc-s1, libc6
+          # (essential runtimes that MATLAB and the runner itself need).
+          PURGE_RE='^(gcc|g\+\+|gfortran|clang|clangd|libclang.*|llvm.*|libllvm.*|lld.*|libomp.*|libgfortran[0-9]+|libgomp[0-9]+|libquadmath[0-9]+|libatomic[0-9]+|libitm[0-9]+|libasan[0-9]+|libubsan[0-9]+|liblsan[0-9]+|libtsan[0-9]+|libcc1-[0-9]+|libssp[0-9]+|libstdc\+\+-.*-dev|libgcc-.*-dev|libgfortran-.*-dev|make|ninja-build|patchelf|build-essential|binutils.*|libbinutils.*|libctf.*|libgprofng.*|autoconf|automake|libtool|pkg-config|pkgconf.*|bison|flex|m4|cmake.*)$'
+
+          PKGS=$(dpkg-query -W --showformat='${Package}\n' 2>/dev/null | grep -E "$PURGE_RE" || true)
+
+          if [ -n "$PKGS" ]; then
+            echo "Purging $(echo "$PKGS" | wc -l) packages via dpkg --force-depends:"
+            echo "$PKGS" | sed 's/^/  /'
+            sudo dpkg --purge --force-depends $PKGS || true
+          fi
+
+          # Non-apt installs added by the runner-image setup (newer than
+          # what apt would have):
+          sudo rm -rf /usr/local/bin/cmake /usr/local/bin/ctest /usr/local/bin/cpack \
+                      /usr/local/share/cmake-* /usr/local/doc/cmake* \
+                      /usr/local/man/man1/cmake.1.gz /usr/local/man/man1/ctest.1.gz \
+                      /usr/local/man/man1/cpack.1.gz /usr/local/man/man7/cmake-* \
+                      /usr/local/bin/ninja
+
+          # Linuxbrew tree (preinstalled but not on PATH; wipe anyway)
           sudo rm -rf /home/linuxbrew
+
+          # Refresh the linker cache so removed .so files don't linger
+          sudo ldconfig
 
       - name: Verify strip
         if: steps.check.outputs.has_packages == 'true'
@@ -903,23 +920,40 @@ jobs:
         if: steps.check.outputs.has_packages == 'true'
         shell: bash
         run: |
-          # Explicit gcc list (not 'gcc*'): the wildcard would also match
-          # gcc-N-base, which libgcc-s1/libstdc++6/libgomp1 depend on, so
-          # apt's resolver refuses the whole transaction and the strip
-          # silently no-ops via `|| true`.
-          sudo apt-get purge -y \
-            gcc gcc-12 gcc-13 gcc-14 'g++*' \
-            'clang*' 'llvm*' 'libllvm*' 'lld*' \
-            'gfortran*' 'libgfortran*' \
-            'libgomp*' 'libquadmath*' 'libatomic*' 'libitm*' 'libomp*' \
-            'libasan*' 'libubsan*' 'libtsan*' 'liblsan*' 'libcc1*' 'libssp*' \
-            'cmake*' make ninja-build \
-            'libstdc++-*-dev' 'libgcc-*-dev' libc6-dev \
-            patchelf build-essential \
-            'binutils*' \
-            autoconf automake libtool pkg-config bison flex m4 || true
-          sudo apt-get autoremove -y --purge
+          # Bypass apt's resolver: enumerate installed toolchain packages
+          # and let dpkg purge them with --force-depends. The resolver
+          # kept rejecting our purge sets because some toolchain packages
+          # have reverse-dep chains into essentials (libgcc-s1, libssl3t64,
+          # etc.). --force-depends ignores those checks and removes the
+          # named packages anyway; the resulting dpkg state is inconsistent
+          # but the runner is thrown away after this job.
+          #
+          # Patterns are anchored with ^...$ so partial matches don't slip
+          # in. They intentionally exclude libstdc++6, libgcc-s1, libc6
+          # (essential runtimes that MATLAB and the runner itself need).
+          PURGE_RE='^(gcc|g\+\+|gfortran|clang|clangd|libclang.*|llvm.*|libllvm.*|lld.*|libomp.*|libgfortran[0-9]+|libgomp[0-9]+|libquadmath[0-9]+|libatomic[0-9]+|libitm[0-9]+|libasan[0-9]+|libubsan[0-9]+|liblsan[0-9]+|libtsan[0-9]+|libcc1-[0-9]+|libssp[0-9]+|libstdc\+\+-.*-dev|libgcc-.*-dev|libgfortran-.*-dev|make|ninja-build|patchelf|build-essential|binutils.*|libbinutils.*|libctf.*|libgprofng.*|autoconf|automake|libtool|pkg-config|pkgconf.*|bison|flex|m4|cmake.*)$'
+
+          PKGS=$(dpkg-query -W --showformat='${Package}\n' 2>/dev/null | grep -E "$PURGE_RE" || true)
+
+          if [ -n "$PKGS" ]; then
+            echo "Purging $(echo "$PKGS" | wc -l) packages via dpkg --force-depends:"
+            echo "$PKGS" | sed 's/^/  /'
+            sudo dpkg --purge --force-depends $PKGS || true
+          fi
+
+          # Non-apt installs added by the runner-image setup (newer than
+          # what apt would have):
+          sudo rm -rf /usr/local/bin/cmake /usr/local/bin/ctest /usr/local/bin/cpack \
+                      /usr/local/share/cmake-* /usr/local/doc/cmake* \
+                      /usr/local/man/man1/cmake.1.gz /usr/local/man/man1/ctest.1.gz \
+                      /usr/local/man/man1/cpack.1.gz /usr/local/man/man7/cmake-* \
+                      /usr/local/bin/ninja
+
+          # Linuxbrew tree (preinstalled but not on PATH; wipe anyway)
           sudo rm -rf /home/linuxbrew
+
+          # Refresh the linker cache so removed .so files don't linger
+          sudo ldconfig
 
       - name: Verify strip
         if: steps.check.outputs.has_packages == 'true'
