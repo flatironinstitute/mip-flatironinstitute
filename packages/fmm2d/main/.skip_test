@@ -1,0 +1,8 @@
+# Architectures on which this package's test should be skipped.
+# One arch per line. Lines starting with '#' or blank lines are ignored.
+#
+# MATLAB R2024b+ on macOS arm64 SIGSEGVs in _pthread_tsd_cleanup at shutdown
+# for any MEX that links Homebrew libgomp/libgfortran (see
+# https://github.com/wmutschl/matlab_openmp_tls_bug). Re-enable once the
+# mexLock shim lands.
+macos_arm64

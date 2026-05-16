@@ -1,0 +1,7 @@
+# Architectures on which this package's test should be skipped.
+# One arch per line. Lines starting with '#' or blank lines are ignored.
+#
+# chunkie depends on fmm2d and its test loads the fmm2d MEX, inheriting
+# fmm2d's macOS-arm64 exit-time crash on MATLAB R2024b+ (see
+# packages/fmm2d/main/.skip_test).
+macos_arm64
