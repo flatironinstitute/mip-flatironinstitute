@@ -426,27 +426,34 @@ jobs:
             sudo mv /opt/homebrew /opt/homebrew.deleted
           fi
 
+      - name: Clear tests_passed marker
+        if: steps.check.outputs.has_packages == 'true'
+        shell: bash
+        run: rm -f .tests_passed
+
       - name: Test bundled packages
         # MATLAB R2024b+ on macOS arm64 SIGSEGVs in _pthread_tsd_cleanup at
         # shutdown for any MEX linking Homebrew libgomp/libgfortran (see
         # https://github.com/wmutschl/matlab_openmp_tls_bug). The crash is
         # cosmetic — tests complete before MATLAB exits. We write a marker
-        # file on full success and gate the step on its presence so that a
-        # real test/load failure still fails the step, but the exit-time
-        # SIGSEGV is tolerated. matlab-actions/run-command can't make this
-        # distinction, so we invoke matlab directly.
+        # file on full success and verify it in the next step so that a
+        # real test/load failure still fails the job, but the exit-time
+        # SIGSEGV is tolerated. continue-on-error lets the job survive the
+        # nonzero matlab return code; the next step is the real gate.
+        if: steps.check.outputs.has_packages == 'true'
+        continue-on-error: true
+        uses: matlab-actions/run-command@v2
+        with:
+          command: "addpath('mip'); addpath('scripts'); try; test_bundled_packages; fid = fopen('.tests_passed', 'w'); fclose(fid); catch err; disp(getReport(err)); exit(1); end"
+
+      - name: Verify tests passed
         if: steps.check.outputs.has_packages == 'true'
         shell: bash
         run: |
-          rm -f .tests_passed
-          set +e
-          matlab -batch "addpath('mip'); addpath('scripts'); try; test_bundled_packages; fid = fopen('.tests_passed', 'w'); fclose(fid); catch err; disp(getReport(err)); exit(1); end"
-          rc=$?
           if [ -f .tests_passed ]; then
-            echo "::notice::tests passed (matlab rc=$rc; exit-time SIGSEGV tolerated)"
-            exit 0
+            echo "::notice::tests passed (matlab exit-time SIGSEGV tolerated)"
           else
-            echo "::error::tests failed (rc=$rc, no .tests_passed marker)"
+            echo "::error::tests failed (no .tests_passed marker)"
             exit 1
           fi
 
