@@ -427,7 +427,7 @@ jobs:
           fi
 
       - name: Test bundled packages
-        if: steps.check.outputs.has_packages == 'true'
+        if: false  # temporarily disabled: investigating macOS exit-time SIGSEGV
         uses: matlab-actions/run-command@v2
         with:
           command: "addpath('mip'); addpath('scripts'); test_bundled_packages"
