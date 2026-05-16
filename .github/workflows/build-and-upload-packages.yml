@@ -403,14 +403,28 @@ jobs:
         if: steps.check.outputs.has_packages == 'true'
         shell: bash
         run: |
-          sudo rm -rf /Applications/Xcode*.app
-          sudo rm -rf /Library/Developer
-          sudo rm -rf ~/Library/Developer
+          # Rename rather than rm -rf: an APFS rename is a metadata-only
+          # op (~ms), while rm -rf walks 100k+ files in Xcode/Homebrew
+          # and takes ~3 min. The runner is ephemeral so leaving the
+          # bytes on disk is fine; the test only needs the paths to be
+          # unfindable by the linker / loader.
+          for d in /Applications/Xcode*.app; do
+            [ -e "$d" ] || continue
+            sudo mv "$d" "${d}.deleted"
+          done
+          if [ -e /Library/Developer ]; then
+            sudo mv /Library/Developer /Library/Developer.deleted
+          fi
+          if [ -e ~/Library/Developer ]; then
+            sudo mv ~/Library/Developer ~/Library/Developer.deleted
+          fi
           sudo pkgutil --forget com.apple.pkg.CLTools_Executables 2>/dev/null || true
           sudo pkgutil --forget com.apple.pkg.CLTools_SDK_macOS 2>/dev/null || true
           sudo pkgutil --forget com.apple.pkg.DeveloperToolsCLI 2>/dev/null || true
           sudo xcode-select --reset 2>/dev/null || true
-          sudo rm -rf /opt/homebrew
+          if [ -e /opt/homebrew ]; then
+            sudo mv /opt/homebrew /opt/homebrew.deleted
+          fi
 
       - name: Test bundled packages
         if: steps.check.outputs.has_packages == 'true'
