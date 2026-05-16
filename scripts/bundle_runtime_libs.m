@@ -33,6 +33,14 @@ end
 % -------------------------------------------------------------------------
 function bundle_linux(mexFile, outDir)
 
+% MATLAB injects its own (older) libstdc++.so.6 into LD_LIBRARY_PATH;
+% patchelf is C++-linked against the system's newer libstdc++ and
+% aborts with "GLIBCXX_x.y.z not found" when MATLAB's takes precedence.
+% Clear LD_LIBRARY_PATH for the duration of this function.
+oldLD = getenv('LD_LIBRARY_PATH');
+restorer = onCleanup(@() setenv('LD_LIBRARY_PATH', oldLD)); %#ok<NASGU>
+setenv('LD_LIBRARY_PATH', '');
+
 % Parse NEEDED entries.
 [~, out] = system(sprintf('readelf -d "%s"', mexFile));
 tok = regexp(out, '\(NEEDED\)\s+Shared library: \[([^\]]+)\]', 'tokens');
