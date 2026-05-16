@@ -21,7 +21,7 @@ if ~exist(preparedDir, 'dir')
 end
 
 fprintf('Setting up MEX compilers...\n');
-% setup_mex_compilers(architecture);
+setup_mex_compilers(architecture);
 
 if ~exist(outputDir, 'dir')
     mkdir(outputDir);

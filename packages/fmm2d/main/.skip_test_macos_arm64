@@ -1,0 +1,4 @@
+MATLAB R2024b+ on macOS arm64 SIGSEGVs in _pthread_tsd_cleanup at shutdown
+for any MEX that links Homebrew libgomp/libgfortran (see
+https://github.com/wmutschl/matlab_openmp_tls_bug). fmm2d's Fortran code
+triggers it. Re-enable once the mexLock shim lands.

@@ -10,6 +10,14 @@ function test_bundled_packages
     mip_json_path = [mhl_path '.mip.json'];
     info = jsondecode(fileread(mip_json_path));
     pkg_name = info.name;
+    marker = sprintf('%s/.skip_test_%s', info.name, info.architecture);
+    [status, ~] = system(sprintf( ...
+        'tar -tzf "%s" 2>/dev/null | grep -qx "%s"', mhl_path, marker));
+    if status == 0
+      fprintf('\n=== SKIPPING %s (.skip_test_%s present) ===\n', ...
+              files(k).name, info.architecture);
+      continue;
+    end
     fprintf('\n=== Testing %s (package: %s) ===\n', files(k).name, pkg_name);
     mip('install', mhl_path);
     mip('load', pkg_name);
