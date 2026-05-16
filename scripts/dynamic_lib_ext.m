@@ -1,4 +1,5 @@
-function libext = dynamic_library_ext()
+function libext = dynamic_lib_ext()
+%DYNAMIC_LIB_EXT   Return the platform's dynamic-library extension.
 
 persistent libext_
 

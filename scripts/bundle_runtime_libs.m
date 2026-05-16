@@ -12,14 +12,17 @@ function bundle_runtime_libs(mexFile)
 %
 % The result is a self-contained .mex* that depends only on system libraries
 % guaranteed by the OS and libraries MATLAB resolves itself.
+%
+% No-op on Windows.
 
 if ~exist(mexFile, 'file')
-    error('bundle_runtime_libs:notFound', 'MEX file not found: %s', mexFile);
+    error('mip:bundleRuntimeLibs:notFound', ...
+          'MEX file not found: %s', mexFile);
 end
 
 outDir = fileparts(mexFile);
 
-if islinux()
+if isunix() && ~ismac()
     bundle_linux(mexFile, outDir);
 elseif ismac
     bundle_macos(mexFile, outDir);
@@ -51,7 +54,7 @@ for i = 1:numel(needed)
         continue;
     end
     if ~isKey(resolved, so)
-        warning('bundle_runtime_libs:unresolved', ...
+        warning('mip:bundleRuntimeLibs:unresolved', ...
                 'Could not resolve %s via ldd; skipping', so);
         continue;
     end
@@ -61,7 +64,8 @@ for i = 1:numel(needed)
 end
 
 if bundled
-    run_and_log(sprintf('patchelf --set-rpath ''$$ORIGIN'' "%s"', mexFile));
+    system_echo(sprintf( ...
+        'patchelf --set-rpath ''$$ORIGIN'' "%s"', mexFile));
 end
 
 end
@@ -87,7 +91,7 @@ for i = 2:numel(lines)
     copy_and_sanitize_lib(libPath, outDir);
     [~, base, ext] = fileparts(libPath);
     libName = [base ext];
-    run_and_log(sprintf( ...
+    system_echo(sprintf( ...
         'install_name_tool -change "%s" "@rpath/%s" "%s"', ...
         libPath, libName, mexFile));
     bundled = true;
@@ -97,7 +101,8 @@ if bundled
     % Add @loader_path rpath if not already present.
     [~, rpathOut] = system(sprintf('otool -l "%s"', mexFile));
     if isempty(regexp(rpathOut, 'path @loader_path', 'once'))
-        run_and_log(sprintf('install_name_tool -add_rpath @loader_path "%s"', mexFile));
+        system_echo(sprintf( ...
+            'install_name_tool -add_rpath @loader_path "%s"', mexFile));
     end
 end
 

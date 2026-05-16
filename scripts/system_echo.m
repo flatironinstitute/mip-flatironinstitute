@@ -1,6 +1,7 @@
-function [status, cmdout] = run_and_log(cmd)
+function [status, cmdout] = system_echo(cmd)
+%SYSTEM_ECHO   Echo a shell command, then run it via system().
 
-fprintf('  \033[32m%s\033[0m\n', cmd);
+fprintf('  %s\n', cmd);
 [status, cmdout] = system(cmd);
 if ~isempty(cmdout)
     lines = splitlines(cmdout);
