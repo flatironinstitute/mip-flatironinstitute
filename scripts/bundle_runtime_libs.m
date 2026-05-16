@@ -73,7 +73,7 @@ end
 
 if bundled
     system_echo(sprintf( ...
-        'patchelf --set-rpath ''$$ORIGIN'' "%s"', mexFile));
+        'patchelf --set-rpath ''$ORIGIN'' "%s"', mexFile));
 end
 
 end

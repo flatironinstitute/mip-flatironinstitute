@@ -39,7 +39,7 @@ function copy_and_sanitize_lib_linux(sourceLib, destDir)
     cmd = sprintf('patchelf --set-soname %s          %s', lib, local_lib);
     system_echo(cmd);
 
-    cmd = sprintf('patchelf --set-rpath ''$$ORIGIN'' %s', local_lib);
+    cmd = sprintf('patchelf --set-rpath ''$ORIGIN'' %s', local_lib);
     system_echo(cmd);
 end
 
