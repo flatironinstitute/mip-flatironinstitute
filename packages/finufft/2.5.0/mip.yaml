@@ -16,7 +16,8 @@ paths:
   - path: "matlab/numbl"
 
 builds:
-  - architectures: [linux_x86_64, macos_x86_64, macos_arm64, windows_x86_64]
+  # - architectures: [linux_x86_64, macos_x86_64, macos_arm64, windows_x86_64]
+  - architectures: [linux_x86_64]
     compile_script: compile.m
     test_script: test_finufft.m
     paths:
